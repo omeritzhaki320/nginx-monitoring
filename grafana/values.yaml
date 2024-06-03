@@ -596,14 +596,17 @@ plugins: []
 
 ## Configure grafana datasources
 ## ref: http://docs.grafana.org/administration/provisioning/#datasources
-##
-datasources: {}
-#  datasources.yaml:
-#    apiVersion: 1
-#    datasources:
-#    - name: Prometheus
-#      type: prometheus
-#      url: http://prometheus-prometheus-server
+##Override
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://prometheus-server
+      isDefault: true
+      editable: true
 #      access: proxy
 #      isDefault: true
 #    - name: CloudWatch
@@ -724,8 +727,71 @@ dashboardProviders: {}
 ## ref: https://grafana.com/dashboards
 ##
 ## dashboards per provider, use provider name as key.
-##
-dashboards: {}
+##Override
+dashboards:
+  default:
+    nginx-dashboard:
+      json: |
+        {
+          "id": null,
+          "uid": "nginx",
+          "title": "NGINX",
+          "tags": ["nginx"],
+          "timezone": "browser",
+          "schemaVersion": 16,
+          "version": 0,
+          "refresh": "5s",
+          "panels": [
+            {
+              "type": "graph",
+              "title": "NGINX Success Rate",
+              "targets": [
+                {
+                  "expr": "sum(rate(nginx_http_requests_total{status=~\"2..\"}[5m])) / sum(rate(nginx_http_requests_total[5m]))",
+                  "legendFormat": "Success Rate",
+                  "interval": "",
+                  "refId": "A"
+                }
+              ]
+            },
+            {
+              "type": "graph",
+              "title": "CPU Usage",
+              "targets": [
+                {
+                  "expr": "rate(container_cpu_usage_seconds_total{container_name=\"nginx\"}[5m])",
+                  "legendFormat": "CPU Usage",
+                  "interval": "",
+                  "refId": "A"
+                }
+              ]
+            },
+            {
+              "type": "graph",
+              "title": "Memory Usage",
+              "targets": [
+                {
+                  "expr": "container_memory_usage_bytes{container_name=\"nginx\"}",
+                  "legendFormat": "Memory Usage",
+                  "interval": "",
+                  "refId": "A"
+                }
+              ]
+            },
+            {
+              "type": "graph",
+              "title": "Request Rate",
+              "targets": [
+                {
+                  "expr": "rate(nginx_http_requests_total[1m])",
+                  "legendFormat": "Request Rate",
+                  "interval": "",
+                  "refId": "A"
+                }
+              ]
+            }
+          ]
+        }
   # default:
   #   some-dashboard:
   #     json: |
