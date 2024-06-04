@@ -25,10 +25,10 @@ spec:
         - containerPort: 80
         resources:
           limits:
-            cpu: "0.5"
+            cpu: "500m"
             memory: "512Mi"
           requests:
-            cpu: "0.1"
+            cpu: "100m"
             memory: "256Mi"
         volumeMounts:
         - name: nginx-config-volume
@@ -54,11 +54,11 @@ spec:
         - containerPort: 9113
         resources:
           limits:
-            cpu: "0.1"
-            memory: "128Mi"
+            cpu: "500m"
+            memory: "512Mi"
           requests:
-            cpu: "0.05"
-            memory: "64Mi"
+            cpu: "100m"
+            memory: "256Mi"
         livenessProbe:
           httpGet:
             path: /metrics
