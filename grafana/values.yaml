@@ -601,12 +601,12 @@ datasources:
   datasources.yaml:
     apiVersion: 1
     datasources:
-    - name: Prometheus
-      type: prometheus
-      access: proxy
-      url: http://prometheus-server
-      isDefault: true
-      editable: true
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-server.default.svc.cluster.local:80
+        isDefault: true
+        editable: true
 #      access: proxy
 #      isDefault: true
 #    - name: CloudWatch
@@ -708,8 +708,19 @@ notifiers: {}
 ## ref: http://docs.grafana.org/administration/provisioning/#dashboards
 ##
 ## `path` must be /var/lib/grafana/dashboards/<provider_name>
-##
-dashboardProviders: {}
+##Override
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: true
+        updateIntervalSeconds: 10
+        options:
+          path: /var/lib/grafana/dashboards
 #  dashboardproviders.yaml:
 #    apiVersion: 1
 #    providers:
@@ -733,65 +744,246 @@ dashboards:
     nginx-dashboard:
       json: |
         {
+          "annotations": {
+            "list": [
+              {
+                "builtIn": 1,
+                "datasource": "-- Grafana --",
+                "enable": true,
+                "hide": true,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "type": "dashboard"
+              }
+            ]
+          },
+          "editable": true,
+          "gnetId": null,
+          "graphTooltip": 0,
           "id": null,
-          "uid": "nginx",
-          "title": "NGINX",
-          "tags": ["nginx"],
-          "timezone": "browser",
-          "schemaVersion": 16,
-          "version": 0,
-          "refresh": "5s",
+          "iteration": 1625114078588,
+          "links": [],
           "panels": [
             {
-              "type": "graph",
-              "title": "NGINX Success Rate",
+              "datasource": "Prometheus",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 9,
+                "w": 12,
+                "x": 0,
+                "y": 0
+              },
+              "id": 1,
+              "options": {
+                "orientation": "auto"
+              },
+              "pluginVersion": "7.5.7",
               "targets": [
                 {
-                  "expr": "sum(rate(nginx_http_requests_total{status=~\"2..\"}[5m])) / sum(rate(nginx_http_requests_total[5m]))",
-                  "legendFormat": "Success Rate",
+                  "expr": "rate(container_cpu_usage_seconds_total{pod=~\"nginx.*\"}[5m])",
                   "interval": "",
-                  "refId": "A"
-                }
-              ]
-            },
-            {
-              "type": "graph",
-              "title": "CPU Usage",
-              "targets": [
-                {
-                  "expr": "rate(container_cpu_usage_seconds_total{container_name=\"nginx\"}[5m])",
                   "legendFormat": "CPU Usage",
-                  "interval": "",
                   "refId": "A"
                 }
-              ]
+              ],
+              "title": "Nginx CPU Usage",
+              "type": "gauge"
             },
             {
-              "type": "graph",
-              "title": "Memory Usage",
+              "datasource": "Prometheus",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 9,
+                "w": 12,
+                "x": 12,
+                "y": 0
+              },
+              "id": 2,
+              "options": {
+                "orientation": "auto"
+              },
+              "pluginVersion": "7.5.7",
               "targets": [
                 {
-                  "expr": "container_memory_usage_bytes{container_name=\"nginx\"}",
+                  "expr": "container_memory_usage_bytes{pod=~\"nginx.*\"}",
+                  "interval": "",
                   "legendFormat": "Memory Usage",
-                  "interval": "",
                   "refId": "A"
                 }
-              ]
+              ],
+              "title": "Nginx Memory Usage",
+              "type": "gauge"
             },
             {
-              "type": "graph",
-              "title": "Request Rate",
+              "datasource": "Prometheus",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 9,
+                "w": 12,
+                "x": 0,
+                "y": 9
+              },
+              "id": 3,
+              "options": {
+                "orientation": "auto"
+              },
+              "pluginVersion": "7.5.7",
               "targets": [
                 {
-                  "expr": "rate(nginx_http_requests_total[1m])",
-                  "legendFormat": "Request Rate",
+                  "expr": "sum(rate(nginx_http_requests_total{status=~\"2..\"}[5m])) by (pod)",
                   "interval": "",
+                  "legendFormat": "2xx",
+                  "refId": "A"
+                },
+                {
+                  "expr": "sum(rate(nginx_http_requests_total{status=~\"3..\"}[5m])) by (pod)",
+                  "interval": "",
+                  "legendFormat": "3xx",
+                  "refId": "B"
+                },
+                {
+                  "expr": "sum(rate(nginx_http_requests_total{status=~\"4..\"}[5m])) by (pod)",
+                  "interval": "",
+                  "legendFormat": "4xx",
+                  "refId": "C"
+                },
+                {
+                  "expr": "sum(rate(nginx_http_requests_total{status=~\"5..\"}[5m])) by (pod)",
+                  "interval": "",
+                  "legendFormat": "5xx",
+                  "refId": "D"
+                }
+              ],
+              "title": "HTTP Requests by Type",
+              "type": "graph"
+            },
+            {
+              "datasource": "Prometheus",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 9,
+                "w": 12,
+                "x": 12,
+                "y": 9
+              },
+              "id": 4,
+              "options": {
+                "orientation": "auto"
+              },
+              "pluginVersion": "7.5.7",
+              "targets": [
+                {
+                  "expr": "sum(rate(nginx_http_requests_total[5m])) by (pod)",
+                  "interval": "",
+                  "legendFormat": "Request Rate",
                   "refId": "A"
                 }
-              ]
+              ],
+              "title": "Nginx Request Rate",
+              "type": "gauge"
             }
-          ]
+          ],
+          "schemaVersion": 30,
+          "style": "dark",
+          "tags": [],
+          "templating": {
+            "list": []
+          },
+          "time": {
+            "from": "now-6h",
+            "to": "now"
+          },
+          "timepicker": {},
+          "timezone": "",
+          "title": "Nginx Monitoring",
+          "uid": null,
+          "version": 1
         }
+
   # default:
   #   some-dashboard:
   #     json: |

@@ -30,6 +30,10 @@ spec:
           requests:
             cpu: "0.1"
             memory: "256Mi"
+        volumeMounts:
+        - name: nginx-config-volume
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
         livenessProbe:
           httpGet:
             path: /
@@ -67,6 +71,10 @@ spec:
             port: 9113
           initialDelaySeconds: 30
           periodSeconds: 10
+      volumes:
+      - name: nginx-config-volume
+        configMap:
+          name: nginx-config
 ---
 apiVersion: v1
 kind: Service

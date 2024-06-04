@@ -759,9 +759,9 @@ serverFiles:
     ## Below two files are DEPRECATED will be removed from this default values file
       - /etc/config/rules
       - /etc/config/alerts
-
+    ##Override
     scrape_configs:
-      - job_name: 'nginx'
+      - job_name: nginx
         static_configs:
           - targets: [ 'nginx-deployment.default.svc.cluster.local:9113' ]
 
